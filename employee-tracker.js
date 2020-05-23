@@ -1,10 +1,7 @@
 const mysql = require("mysql");
 const cTable = require("console.table")
 const inquirer = require("inquirer")
-let departmentArray = ["Web Development"];
-let roleArray = ["Manager"];
-let managerArray = ["Dallas Washburn"];
-let employeeArray = ["Ashlyn Washburn"];
+
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -89,22 +86,25 @@ const createDepartment = () => {
         ]).then((answer) => {
             const sqlQuery = "INSERT INTO department SET ?";
             const params = {
-                name: answer.department
+                department_name: answer.department
             };
-            let arr = answer.department;
-            departmentArray.push(arr);
+
             connection.query(sqlQuery, params, (err, res) => {
                 if (err) throw err;
                 // console.log(res);
+                askQuestions()
             })
-        }).then(() => {
-
-            askQuestions()
         })
 
 };
 
 const createRole = () => {
+    connection.query("SELECT * FROM department", (err, res) => {
+        if (err) throw err;
+       const myDepartments= res.map(function(dep){
+           return ({name:dep.department_name, value:dep.id})
+       })
+    
     inquirer
         .prompt([
             {
@@ -121,7 +121,7 @@ const createRole = () => {
                 name: "department_id",
                 type: "list",
                 message: "What department does this role belong to?",
-                choices: departmentArray
+                choices: myDepartments
             }
             ]).then((answer) => {
                 const sqlQuery = "INSERT INTO role SET ?";
@@ -130,20 +130,36 @@ const createRole = () => {
                     salary: answer.salary,
                     department_id: answer.department_id
                 };
-                let arr = answer.title;
-                roleArray.push(arr);
+
 
                 connection.query(sqlQuery, params, (err, res) => {
                     if (err) throw err;
                     // console.log(res);
+                    askQuestions()
                 })
-            }).then(() => {
-
-                askQuestions()
             })
+        })  
 };
 
 const createEmployee = () => {
+    connection.query("SELECT * FROM role", (err, res) => {
+        if (err) throw err;
+       const myRoles= res.map(function(itm){
+           return ({name:itm.title, value:itm.id})
+       })
+       connection.query("SELECT * FROM employee", (error, result) => {
+        if (error) throw error;
+       const myEmployees= result.map(function(emp){
+           return ({name:`${emp.first_name} ${emp.last_name}`, value:emp.id})
+       })
+       myEmployees.unshift({
+           name:"None",
+
+           value: null
+       })
+       console.log(myEmployees);
+       
+   
     inquirer
         .prompt([
             {
@@ -160,38 +176,37 @@ const createEmployee = () => {
                 name: "role_id",
                 type: "list",
                 message: "What role does this employee have?",
-                choices: roleArray
+                choices: myRoles
             },
             {
                 name: "manager_id",
                 type: "list",
                 message: "Who is the employees manager",
-                choices: ["None"]
+                choices: myEmployees
             }
 
         ]).then((answer) => {
             const sqlQuery = "INSERT INTO employee SET ?";
 
-            if(answer.manager_id === "None"){
-                let id = 0
-                return id;
-            }
+            // if(answer.manager_id === "None"){
+                
+            //     return null;
+            // }
             const params = {
                 first_name: answer.first_name,
                 last_name: answer.last_name,
                 role_id: answer.role_id,
-                manager_id: id
+                manager_id: answer.manager_id
             };
-            let arr = answer.first_name + " " + answer.last_name;
-            employeeArray.push(arr);
+
             connection.query(sqlQuery, params, (err, res) => {
                 if (err) throw err;
                 // console.log(res);
+                askQuestions()
             })
-        }).then(() => {
-
-            askQuestions()
         })
+    })
+})
 
 };
 
@@ -208,41 +223,52 @@ const viewDepartments = () => {
 }
 
 const viewRoles = () => {
-    connection.query("SELECT * FROM role", (err, res) => {
+    connection.query("SELECT * FROM role INNER JOIN department ON role.department_id = department.id", (err, res) => {
         if (err) throw err;
         const table = cTable.getTable(res)
         console.log(table);
+        askQuestions();
     })
 
-    askQuestions();
 
 }
 
 const viewEmployees = () => {
-    connection.query("SELECT * FROM employee", (err, res) => {
+    connection.query(`Select * from employee LEFT JOIN role ON employee.role_id = role.id`, (err, res) => {
         if (err) throw err;
         const table = cTable.getTable(res)
         console.log(table);
+        askQuestions();
     })
 
-    askQuestions();
 
 }
 
 const updateRole = () => {
+    connection.query("SELECT * FROM employee", (error, result) => {
+        if (error) throw error;
+       const myEmployees= result.map(function(emp){
+           return ({name:`${emp.first_name} ${emp.last_name}`, value:emp.id})
+       })
+       connection.query("SELECT * FROM role", (err, res) => {
+        if (err) throw err;
+       const myRoles= res.map(function(itm){
+           return ({name:itm.title, value:itm.id})
+       })
+
     inquirer
         .prompt([
             {
             name: "employeeList",
             type: "list",
             message: "What employee would you like to update?",
-            choices: employeeArray
+            choices: myEmployees
         },
             {
                 name: "roleList",
                 type: "list",
                 message: "What role would you like to give to this employee?",
-                choices: roleArray
+                choices: myRoles
             }
             ]).then((answer) => {
                 const sqlQuery = "UPDATE employee SET ? WHERE ?";
@@ -251,12 +277,17 @@ const updateRole = () => {
                 connection.query(sqlQuery, params, (err, res) => {
                     if (err) throw err;
                     console.log(res);
+                    askQuestions()
                 })
-            }).then(() => {
-
-                askQuestions()
             })
-
+    
+        }) 
+    })
 }
 
 askQuestions()
+
+// SELECT * FROM employee INNER JOIN role ON employee.role_id =role.id" + " " +
+//     "INNER JOIN employee ON employee.id = employee.manager_id
+
+const viewAllEmployeesQuery = `SELECT * FROM employee`
