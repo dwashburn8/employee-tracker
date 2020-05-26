@@ -17,6 +17,18 @@ connection.connect((err) => {
 
 });
 
+const logConsole= () => {
+    console.log(` 
+    .########.##.....##.########..##........#######..##....##.########.########....##.....##....###....##....##....###.....######...########.########.
+    .##.......###...###.##.....##.##.......##.....##..##..##..##.......##..........###...###...##.##...###...##...##.##...##....##..##.......##.....##
+    .##.......####.####.##.....##.##.......##.....##...####...##.......##..........####.####..##...##..####..##..##...##..##........##.......##.....##
+    .######...##.###.##.########..##.......##.....##....##....######...######......##.###.##.##.....##.##.##.##.##.....##.##...####.######...########.
+    .##.......##.....##.##........##.......##.....##....##....##.......##..........##.....##.#########.##..####.#########.##....##..##.......##...##..
+    .##.......##.....##.##........##.......##.....##....##....##.......##..........##.....##.##.....##.##...###.##.....##.##....##..##.......##....##.
+    .########.##.....##.##........########..#######.....##....########.########....##.....##.##.....##.##....##.##.....##..######...########.##.....##`);
+    
+}
+
 const askQuestions = () => {
     inquirer
         .prompt({
@@ -58,6 +70,7 @@ const askQuestions = () => {
                     break;
 
                 case "View Employee By Manager":
+                    viewEmployeeByManager()
                     break;
 
                 case "Delete Department":
@@ -67,6 +80,7 @@ const askQuestions = () => {
                     break;
 
                 case "Delete Employee":
+                    deleteEmployee()
                     break;
 
                 case "View Budget for Each Department":
@@ -234,7 +248,7 @@ const viewRoles = () => {
 }
 
 const viewEmployees = () => {
-    connection.query(`Select * from employee LEFT JOIN role ON employee.role_id = role.id`, (err, res) => {
+    connection.query(`SELECT first_name, last_name, title, salary, department_name FROM employee, role, department WHERE employee.role_id = role.id AND role.department_id = department.id`, (err, res) => {
         if (err) throw err;
         const table = cTable.getTable(res)
         console.log(table);
@@ -285,9 +299,43 @@ const updateRole = () => {
     })
 }
 
+
+const viewEmployeeByManager = () => {
+    connection.query(`SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, role, department WHERE employee.role_id = role.id AND role.department_id = department.id ORDER BY manager_id DESC`, (err, res) => {
+        if (err) throw err;
+        const table = cTable.getTable(res)
+        console.log(table);
+        askQuestions();
+    })
+}
+
+const deleteEmployee = () => {
+    connection.query("SELECT * FROM employee", (error, result) => {
+        if (error) throw error;
+       const myEmployees= result.map(function(emp){
+           return ({name:`${emp.first_name} ${emp.last_name}`, value:emp.id})
+       })
+       inquirer
+        .prompt([
+            {
+            name: "erasedEmployee",
+            type: "list",
+            message: "What employee would you like to delete?",
+            choices: myEmployees
+        }
+            ]).then((answer) => {
+                const sqlQuery = `DELETE FROM employee WHERE CONCAT(first_name, ' ', last_name) = ${answer.erasedEmployee}`;
+
+                connection.query(sqlQuery, (err, res) => {
+                    if (err) throw err;
+                    console.log(res);
+                    askQuestions()
+                })
+            })
+        })
+}
+
+logConsole()
 askQuestions()
 
-// SELECT * FROM employee INNER JOIN role ON employee.role_id =role.id" + " " +
-//     "INNER JOIN employee ON employee.id = employee.manager_id
 
-const viewAllEmployeesQuery = `SELECT * FROM employee`
