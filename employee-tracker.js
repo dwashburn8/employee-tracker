@@ -285,9 +285,10 @@ const updateRole = () => {
                 choices: myRoles
             }
             ]).then((answer) => {
-                const sqlQuery = "UPDATE employee SET ? WHERE ?";
-                const params = [{ role_id: answer.roleList }, { first_name: answer.employeeList }];
-
+                const sqlQuery = "UPDATE employee SET ? WHERE employee.id = " + answer.employeeList;
+                const params = [{ role_id: answer.roleList }];
+                console.log(answer.employeeList);
+                
                 connection.query(sqlQuery, params, (err, res) => {
                     if (err) throw err;
                     console.log(res);
