@@ -18,9 +18,7 @@ To install necassary dependencies, run the following command:
 npm install
                           
     
-## Questions
-                          
-![GitHub Avatar](https://avatars0.githubusercontent.com/u/58758770?v=4)
+## Questions                
             
 If you have any questions about the repo, open an issue or contact soldbydw@gmail.com directly
             
