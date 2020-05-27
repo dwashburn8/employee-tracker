@@ -171,7 +171,7 @@ const createEmployee = () => {
 
            value: null
        })
-       console.log(myEmployees);
+    //    console.log(myEmployees);
        
    
     inquirer
@@ -229,9 +229,9 @@ const viewDepartments = () => {
         if (err) throw err;
         const table = cTable.getTable(res)
         console.log(table);
+        askQuestions()
     })
 
-    askQuestions()
 
 
 }
@@ -286,7 +286,7 @@ const updateRole = () => {
             }
             ]).then((answer) => {
                 const sqlQuery = "UPDATE employee SET ? WHERE ?";
-                const params = [{ role: answer.roleList }, { first_name: answer.employeeList }];
+                const params = [{ role_id: answer.roleList }, { first_name: answer.employeeList }];
 
                 connection.query(sqlQuery, params, (err, res) => {
                     if (err) throw err;
