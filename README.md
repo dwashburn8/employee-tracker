@@ -1,7 +1,9 @@
 ![Badge](https://img.shields.io/badge/license-GPL-brightgreen.svg)
 
 # Employee Tracker
-                          
+
+![Demo](/demo.png)
+
 ## Description
                           
 Project built using MYSQL and Node.js. Use this program to update, add, and delete employees in  your database. 
